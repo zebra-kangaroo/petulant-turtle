@@ -8,8 +8,8 @@ class WePay(object):
     """
 
     def __init__(
-            self, target_environment="Production", access_token=None, internal_calls=False,
-            api_version=None, request_timeout=30,
+            self, target_environment="None", access_token=None, internal_calls=False,
+            api_url='http://vm.wepay.com/', api_version=None, request_timeout=30,
             ):
         """
         :param bool production: When ``False``, the ``stage.wepay.com`` API
@@ -32,15 +32,17 @@ class WePay(object):
         if target_environment.lower() == "production":
             self.api_endpoint = "https://wepayapi.com/" + endpoint
             self.browser_endpoint = "https://www.wepay.com/" + endpoint
-        if target_environment.lower() == "stage":
+        elif target_environment.lower() == "stage":
             self.api_endpoint = "https://stage.wepayapi.com/" + endpoint
             self.browser_endpoint = "https://stage.wepay.com/" + endpoint
-        if target_environment.lower() == "stage-internal":
-            self.api_endpoint = "https://internal-stage.wepayapi.com/" + endpoint
-            self.browser_endpoint = "https://www.internal-stage.wepay-inc.com/" + endpoint
-        if target_environment.lower() == "vm":
-            self.api_endpoint = "http://vm.wepay.com/" + endpoint
-            self.browser_endpoint = "http://vm.wepay.com/" + endpoint
+        elif target_environment.lower() == "stage-internal":
+            self.api_endpoint = "http://internal-stage.wepayapi.com/" + endpoint
+            self.browser_endpoint = "http://www.internal-stage.wepay-inc.com/" + endpoint
+        else:
+            if api_url.split('/')[-1] != '':      #add trailing slash if it's not there
+                api_url += '/'
+            self.api_endpoint = api_url + endpoint
+            self.browser_endpoint = api_url + endpoint
 
     def call(self, uri, params=None, token=None):
         """
@@ -77,6 +79,8 @@ class WePay(object):
                 timeout=self.request_timeout)
             return response.json()
         except:
+            raise Exception('Unknown error. Please contact support@wepay.com')
+        else:
             if 400 <= response.status_code <= 599:
                 raise Exception('Unknown error. Please contact support@wepay.com')
 
